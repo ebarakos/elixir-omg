@@ -14,14 +14,14 @@
 
 defmodule OMG.Watcher.Supervisor do
   @moduledoc """
-  Supervises the remainder (i.e. all except the `Watcher.BlockGetter` + `OMG.API.State` pair, supervised elsewhere)
+  Supervises the remainder (i.e. all except the `Watcher.BlockGetter` + `OMG.State` pair, supervised elsewhere)
   of the Watcher app
   """
   use Supervisor
-  use OMG.API.LoggerExt
+  use OMG.LoggerExt
 
-  alias OMG.API.EthereumEventListener
   alias OMG.Eth
+  alias OMG.EthereumEventListener
   alias OMG.Watcher
 
   def start_link do
@@ -30,7 +30,7 @@ defmodule OMG.Watcher.Supervisor do
 
   def coordinator_setup do
     # Define workers and child supervisors to be supervised
-    deposit_finality_margin = Application.fetch_env!(:omg_api, :deposit_finality_margin)
+    deposit_finality_margin = Application.fetch_env!(:omg, :deposit_finality_margin)
     finality_margin = Application.fetch_env!(:omg_watcher, :exit_finality_margin)
 
     %{
@@ -69,12 +69,12 @@ defmodule OMG.Watcher.Supervisor do
       },
       # Start workers
       {Watcher.Eventer, []},
-      {OMG.API.RootChainCoordinator, coordinator_setup()},
+      {OMG.RootChainCoordinator, coordinator_setup()},
       EthereumEventListener.prepare_child(
         service_name: :depositor,
         synced_height_update_key: :last_depositor_eth_height,
         get_events_callback: &Eth.RootChain.get_deposits/2,
-        process_events_callback: &OMG.API.State.deposit/1
+        process_events_callback: &OMG.State.deposit/1
       ),
       # this instance of the listener sends deposits to be consumed by the convenience API
       EthereumEventListener.prepare_child(

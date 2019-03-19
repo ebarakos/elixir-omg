@@ -15,7 +15,7 @@
 defmodule OMG.Watcher.Application do
   @moduledoc false
   use Application
-  use OMG.API.LoggerExt
+  use OMG.LoggerExt
 
   def start(_type, _args) do
     DeferredConfig.populate(:omg_watcher)
